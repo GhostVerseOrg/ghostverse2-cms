@@ -1,0 +1,78 @@
+version: "3.8"
+
+services:
+  mvxmestrapiDB:
+    container_name: mvxmestrapiDB
+    platform: linux/amd64 # For platform error on Apple M1 chips
+    restart: unless-stopped
+    env_file: .env
+    image: postgres:14.9-alpine
+    environment:
+      POSTGRES_USER: strapi
+      POSTGRES_PASSWORD: strapi
+      POSTGRES_DB: strapi
+    volumes:
+      #- mvxmestrapi-data:/var/lib/postgresql/data/ # Using a volume
+      - ./data:/var/lib/postgresql/data/ # If you want to use a bind folder
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      timeout: 30s
+      interval: 5s
+      retries: 3
+    networks:
+      - mvxmestrapiPostgresNetwork
+    cap_add:
+      - SYS_NICE # CAP_SYS_NICE
+
+  mvxmestrapi:
+    container_name: mvxmestrapi
+    build: .
+    image: strapi/base:14
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: 1337
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: mvxmestrapiDB
+      DATABASE_PORT: 5432
+      DATABASE_NAME: strapi
+      DATABASE_USERNAME: strapi
+      DATABASE_PASSWORD: strapi
+      JWT_SECRET: q1+wqd4AK8Sh5J8YMF5HZA==
+      ADMIN_JWT_SECRET: BD52vMKEQ7xvXR3wqgZeOw==
+      APP_KEYS: gqwRfxTH8XNt+7W69v6jmQ==,dEb3e5gCaFyDzjfUyNyXoQ==,rQLnUezLFzXwOrZlINbyoA==,2CCye/rcwc57NCq+NWEW7Q==
+      API_TOKEN_SALT: B9ZD0eVYyg6l6e7p8Js1iw==
+      TRANSFER_TOKEN_SALT: lIfPVZ9oBrZ6xdnImD1bIQ==
+      NODE_ENV: development
+      DATABASE_SSL: false
+      DATABASE_SSL_REJECT_UNAUTHORIZED: false
+    volumes:
+      - ./config:/opt/app/config
+      - ./src:/opt/app/src
+      - ./package.json:/opt/package.json
+      - ./yarn.lock:/opt/yarn.lock
+      - ./.env:/opt/app/.env
+      - ./public/uploads:/opt/app/public/uploads
+    ports:
+      - "1337:1337"
+    expose:
+      - "1337"
+    depends_on:
+      mvxmestrapiDB:
+        condition: service_healthy
+    networks:
+      mvxmestrapiPostgresNetwork:
+
+volumes:
+  mvxmestrapi-data:
+
+# Networks to be created to facilitate communication between containers
+networks:
+  mvxmestrapiPostgresNetwork:
+    driver: bridge
+    name: mvxmestrapiPostgresNetwork

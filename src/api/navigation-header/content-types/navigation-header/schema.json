@@ -1,0 +1,32 @@
+{
+  "kind": "singleType",
+  "collectionName": "navigation_headers",
+  "info": {
+    "singularName": "navigation-header",
+    "pluralName": "navigation-headers",
+    "displayName": "Navigation-Header",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "MenuBody": {
+      "type": "dynamiczone",
+      "components": [
+        "menu.dropdown",
+        "menu.link"
+      ],
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    }
+  }
+}
